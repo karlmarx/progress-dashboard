@@ -1,6 +1,8 @@
 import { type NextAuthConfig } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 
+export { auth } from "next-auth";
+
 export const authOptions: NextAuthConfig = {
   providers: [
     GitHubProvider({
@@ -10,13 +12,22 @@ export const authOptions: NextAuthConfig = {
   ],
   callbacks: {
     async session({ session, token }) {
+      if (session?.user) {
+        session.user.id = token.sub || "";
+      }
       return session;
     },
     async authorized({ request, auth }) {
-      // Require GitHub login for dashboard
+      // Allow unauthenticated access to /auth/signin
+      if (!auth && request.nextUrl.pathname === "/auth/signin") {
+        return true;
+      }
+
+      // Require auth for all other routes
       if (!auth) {
         return false;
       }
+
       return true;
     },
   },
