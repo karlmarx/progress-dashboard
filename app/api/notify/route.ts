@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb, initDb } from "@/db/init";
+import { getDb } from "@/db/init";
 import { sendMilestoneEmail } from "@/lib/email";
-
-// Initialize DB on first load
-initDb();
 
 export async function POST(request: NextRequest) {
   try {

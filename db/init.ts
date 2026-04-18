@@ -3,9 +3,12 @@ import fs from "fs";
 import path from "path";
 
 const dbPath = path.join(process.cwd(), "progress.db");
+let db: Database.Database | null = null;
 
 export function initDb() {
-  const db = new Database(dbPath);
+  if (db) return db;
+
+  db = new Database(dbPath);
 
   // Read and execute schema
   const schema = fs.readFileSync(
@@ -18,5 +21,8 @@ export function initDb() {
 }
 
 export function getDb(): Database.Database {
-  return new Database(dbPath);
+  if (!db) {
+    initDb();
+  }
+  return db!;
 }
