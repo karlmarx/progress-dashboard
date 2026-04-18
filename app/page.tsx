@@ -1,13 +1,13 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import Dashboard from "@/components/Dashboard";
+import { getCookieAuth, getLoginRedirectUrl } from '@/lib/auth-check'
+import { redirect } from 'next/navigation'
+import Dashboard from '@/components/Dashboard'
 
 export default async function Home() {
-  const session = await auth();
+  const auth = await getCookieAuth()
 
-  if (!session) {
-    redirect("/api/auth/signin");
+  if (!auth) {
+    redirect(getLoginRedirectUrl('https://progress.93.fyi/'))
   }
 
-  return <Dashboard />;
+  return <Dashboard />
 }
