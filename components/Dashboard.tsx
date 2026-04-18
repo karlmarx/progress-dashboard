@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Section } from "@/lib/status";
 import TaskSection from "./TaskSection";
-import { signOut } from "next-auth/react";
 
 export default function Dashboard() {
   const [sections, setSections] = useState<Section[]>([]);
@@ -45,7 +44,7 @@ export default function Dashboard() {
               </p>
             )}
             <button
-              onClick={() => signOut({ callbackUrl: "/api/auth/signin" })}
+              onClick={() => { window.location.href = "https://me.93.fyi/login"; }}
               className="px-4 py-2 bg-[#ff3355] text-white rounded hover:bg-[#ff2070] font-semibold"
             >
               Sign out
