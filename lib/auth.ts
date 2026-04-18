@@ -16,8 +16,8 @@ const authOptions: NextAuthConfig = {
       return session;
     },
     async authorized({ request, auth }) {
-      // Allow unauthenticated access to /auth/signin
-      if (!auth && request.nextUrl.pathname === "/auth/signin") {
+      // Allow unauthenticated access to /auth/signin and /api/status
+      if (!auth && (request.nextUrl.pathname === "/auth/signin" || request.nextUrl.pathname === "/api/status")) {
         return true;
       }
 
