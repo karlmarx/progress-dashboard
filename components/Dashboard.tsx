@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { Section } from "@/lib/status";
 import TaskSection from "./TaskSection";
 
-export default function Dashboard() {
+interface DashboardProps {
+  email: string;
+}
+
+export default function Dashboard({ email }: DashboardProps) {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>("");
@@ -43,8 +47,11 @@ export default function Dashboard() {
                 Updated: <span className="text-white">{lastUpdated}</span>
               </p>
             )}
+            <p className="text-[#8888aa] text-sm">
+              Signed in as <span className="text-white">{email}</span>
+            </p>
             <button
-              onClick={() => { window.location.href = "https://me.93.fyi/login"; }}
+              onClick={() => { window.location.href = "https://9193.cloudflareaccess.com/cdn-cgi/access/logout"; }}
               className="px-4 py-2 bg-[#ff3355] text-white rounded hover:bg-[#ff2070] font-semibold"
             >
               Sign out

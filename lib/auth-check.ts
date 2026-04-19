@@ -1,17 +1,21 @@
-import { cookies } from 'next/headers'
-import { verifyAuthToken, AUTH_COOKIE } from './jwt'
+import { headers, cookies } from 'next/headers'
+import { verifyCloudflareJWT, CF_AUTHORIZATION_COOKIE, CF_JWT_HEADER } from './jwt'
 
-export async function getCookieAuth(): Promise<{ username: string; exp: number } | null> {
+export async function getCookieAuth(): Promise<{ email: string; exp: number } | null> {
+  const headersList = await headers()
   const cookieStore = await cookies()
-  const token = cookieStore.get(AUTH_COOKIE)?.value
+
+  // Try header first (recommended by Cloudflare)
+  let token: string | null = headersList.get(CF_JWT_HEADER)
+
+  // Fallback to cookie
+  if (!token) {
+    token = cookieStore.get(CF_AUTHORIZATION_COOKIE)?.value ?? null
+  }
 
   if (!token) {
     return null
   }
 
-  return verifyAuthToken(token)
-}
-
-export function getLoginRedirectUrl(currentUrl: string): string {
-  return `https://me.93.fyi/login?next=${encodeURIComponent(currentUrl)}`
+  return verifyCloudflareJWT(token)
 }

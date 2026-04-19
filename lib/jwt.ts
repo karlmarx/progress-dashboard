@@ -1,49 +1,48 @@
-import { SignJWT, jwtVerify } from 'jose'
+import { jwtVerify, importSPKI } from 'jose'
 
-// Issue 1: Extract secret as a constant, validate at module load
-function getSecret(): Uint8Array {
-  const raw = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
-  if (!raw) throw new Error('AUTH_SECRET or NEXTAUTH_SECRET env var is not set')
-  return new TextEncoder().encode(raw)
+const CLOUDFLARE_TEAM_NAME = process.env.CLOUDFLARE_TEAM_NAME || '9193'
+
+let cachedPublicKey: CryptoKey | null = null
+let cachedPublicKeyTime = 0
+const CACHE_DURATION = 3600000 // 1 hour
+
+async function getCloudflarePublicKey(): Promise<CryptoKey> {
+  const now = Date.now()
+  if (cachedPublicKey && now - cachedPublicKeyTime < CACHE_DURATION) {
+    return cachedPublicKey as CryptoKey
+  }
+
+  const response = await fetch(
+    `https://${CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com/cdn-cgi/access/certs`,
+  )
+  if (!response.ok) throw new Error('Failed to fetch Cloudflare public key')
+
+  const data = (await response.json()) as { certs: Array<{ pub_crt: string }> }
+  const publicKeyPEM = data.certs[0].pub_crt
+  const publicKeyObj = await importSPKI(publicKeyPEM, 'RS256')
+  cachedPublicKey = publicKeyObj
+  cachedPublicKeyTime = now
+  return publicKeyObj
 }
 
-const SECRET = getSecret() // evaluated once at module load
-
-// Issue 5: Extract session TTL to a constant
-const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60 // 7 days
-
-export async function createAuthToken(username: string): Promise<string> {
-  return new SignJWT({ username })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime(`${SESSION_TTL_SECONDS}s`)
-    .sign(SECRET)
-}
-
-export async function verifyAuthToken(
+export async function verifyCloudflareJWT(
   token: string,
-): Promise<{ username: string; exp: number } | null> {
+): Promise<{ email: string; exp: number } | null> {
   try {
-    const { payload } = await jwtVerify(token, SECRET)
-    // Issue 2: Runtime type validation before casting
-    const { username, exp } = payload
-    if (typeof username !== 'string' || typeof exp !== 'number') return null
-    return { username, exp }
+    const publicKey = await getCloudflarePublicKey()
+    const { payload } = await jwtVerify(token, publicKey)
+
+    const { email, exp } = payload
+    if (typeof email !== 'string' || typeof exp !== 'number') return null
+    return { email, exp }
   } catch (err) {
-    // Issue 3: Log verification errors before returning null
-    console.error('jwt: verification error', err instanceof Error ? err.message : String(err))
+    console.error(
+      'cloudflare-jwt: verification error',
+      err instanceof Error ? err.message : String(err),
+    )
     return null
   }
 }
 
-export const AUTH_COOKIE = 'auth-93fyi'
-
-export const AUTH_COOKIE_OPTIONS = {
-  // Issue 4: Use env var with fallback for domain
-  domain: process.env.COOKIE_DOMAIN ?? '.93.fyi',
-  path: '/',
-  httpOnly: true,
-  secure: true,
-  sameSite: 'lax' as const,
-  maxAge: SESSION_TTL_SECONDS,
-}
+export const CF_AUTHORIZATION_COOKIE = 'CF_Authorization'
+export const CF_JWT_HEADER = 'Cf-Access-Jwt-Assertion'
