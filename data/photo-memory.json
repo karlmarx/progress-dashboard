@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-04-19T17:14:09.127100",
+  "pipeline": "photo-memory-phase2-captions",
+  "status": "in-flight",
+  "stats": {
+    "total_images": 42575,
+    "captions_complete": 42575,
+    "progress_percent": 100.0,
+    "last_completed": "2026-04-19 18:25:39",
+    "remaining_images": 0,
+    "estimated_hours_remaining": 0.0,
+    "processing_rate_per_minute": 42
+  },
+  "stage": "caption_generation",
+  "model": "gemma-4-26b-a4b-it-4bit"
+}
