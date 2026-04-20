@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-19T20:08:35.111150",
+  "timestamp": "2026-04-19T20:38:33.088290",
   "pipeline": "photo-memory-phase2-vlm-analysis",
   "status": "in-flight",
   "active_stage": "face_detection",
@@ -11,9 +11,9 @@
       "last_completed": "2026-04-19 21:47:59"
     },
     "stage4_faces": {
-      "complete": 33894,
-      "percent": 31.1,
-      "last_completed": "2026-04-19 14:44:06"
+      "complete": 42575,
+      "percent": 39.0,
+      "last_completed": "2026-04-19 18:25:39"
     }
   }
 }
